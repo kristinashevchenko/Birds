@@ -10,7 +10,6 @@ import psycopg2
 import json
 
 app = flask.Flask(__name__)
-app.config['DEBUG'] = True
 
 
 def request_database(query):

@@ -67,7 +67,7 @@ def mainFunc():
         # 1 задание
         count_birds_color(cursor)
         connection.commit()
-        print('Successfully inserted in birds_info')
+        print('Successfully inserted in bird_colors_info')
 
         # 2 задание
         count_birds_stat(cursor)
