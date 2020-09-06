@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
-
 import flask
 from flask import request, jsonify
 import psycopg2
@@ -51,7 +45,7 @@ def insert_into_database(query, insert_object):
         return (True, )
 
     except (Exception, psycopg2.Error) as error :
-        print ('Error while connecting to PostgreSQL', error)
+        print('Error while connecting to PostgreSQL', error)
         return (False, error)
     finally:
             if(connection):
@@ -83,7 +77,7 @@ def api_filter():
     order = query_parameters.get('order')
     offset = query_parameters.get('offset')
 
-    query = 'SELECT * FROM birds'
+    query = 'SELECT species,name,color,body_length,wingspan FROM birds'
     
     if attribute:
         if check_attribute(attribute):
@@ -106,34 +100,37 @@ def api_filter():
     birds = request_database(query)
 
     if birds[0]:
-        return jsonify(birds[1])
+        birds_response = [{'species': bird[0], 'name': bird[1], 'color': bird[2], 'body_length': bird[3], 'wingspan': bird[4]} for bird in birds[1]]
+        return jsonify(birds_response)
     else:
         return page_not_found(birds[1])
     
     
 @app.route('/birds', methods=['POST'])
 def insert_bird():
-    request_object = next(iter(request.form))
-    request_object = json.loads(request_object)
+    try:
+        request_object = request.get_json()
 
-    name = request_object.get('name')
-    color = request_object.get('color')
-    species = request_object.get('species')
-    body_length = request_object.get('body_length')
-    wingspan = request_object.get('wingspan')
-    
-    if name and color and species and wingspan and body_length:
-        query = """INSERT INTO birds (name,color,species,body_length,wingspan) VALUES(%s,%s,%s,%s,%s);"""
-        is_success = insert_into_database(query, (name, color, species, body_length, wingspan))
+        name = request_object.get('name')
+        color = request_object.get('color')
+        species = request_object.get('species')
+        body_length = request_object.get('body_length')
+        wingspan = request_object.get('wingspan')
+        
+        if name and color and species and wingspan and body_length:
+            query = """INSERT INTO birds (name,color,species,body_length,wingspan) VALUES(%s,%s,%s,%s,%s);"""
+            is_success = insert_into_database(query, (name, color, species, body_length, wingspan))
 
-        if not is_success[0]:
-            return page_not_found(is_success[1])
-        return 'Inserted successfully'
-    else:
-        return page_not_found(is_success[1])
+            if not is_success[0]:
+                return page_not_found(is_success[1])
+            return 'Inserted successfully'
+        else:
+            return page_not_found()
+    except:
+        return page_not_found()
     
 def check_attribute(attribute):
     return True if attribute.lower() in ['name', 'body_length', 'color', 'wingspan', 'species'] else False
 
-
-app.run(host='localhost', port=8080)
+if __name__ == "__main__":
+    app.run(host='localhost', port=8080)
